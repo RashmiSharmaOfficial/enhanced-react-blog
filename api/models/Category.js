@@ -1,18 +1,13 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose";
 
-
-//Schema constructor to create a new schema
-//schema is basically structure of the db
 const CategorySchema = new mongoose.Schema(
     {
-        name:{
-            type:String,
-            required:true,
+        name: {
+            type: String,
+            required: true,
         },
     },
-    
-    {timestamps: true}
+    { timestamps: true }
 );
 
-//creating collection
-module.exports = mongoose.model("Category", CategorySchema);
+export const Category = mongoose.model("Category", CategorySchema);

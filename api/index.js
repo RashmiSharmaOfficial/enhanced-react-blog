@@ -1,50 +1,47 @@
-const express = require("express");
+// Import statements
+import express from "express";
+import dotenv from "dotenv";
+import mongoose from "mongoose";
+import multer from "multer";
+import path from "path";
+import cors from "cors";
+import { connectDB } from "./config/db.js";
+
+// Import routes
+import authRoute from "./routes/auth.routes.js";
+import userRoute from "./routes/users.routes.js";
+import postRoute from "./routes/posts.routes.js";
+import categoryRoute from "./routes/categories.routes.js";
+import { uploadMiddleware } from "./middleware/uploadMiddleware.js";
+
+// Initialize express app
 const app = express();
-const dotenv = require("dotenv");
-const mongoose = require("mongoose");
-const authRoute = require("./routes/auth");
-const userRoute = require("./routes/users");
-const postRoute = require("./routes/posts");
-const categoryRoute = require("./routes/categories");
-const multer = require("multer");
-const path = require("path");
-const cors = require("cors");
 
+// Configure environment variables
 dotenv.config();
+
+// Enable CORS for specific origin
 app.use(cors({ origin: 'http://localhost:5173' }));
+
+// Middleware to parse JSON and serve static images
 app.use(express.json());
-app.use("/images", express.static(path.join(__dirname, "/images")));
+app.use("/images", express.static(path.join(path.resolve(), "uploads/images")));
 
-mongoose
-  .connect(process.env.MONGO_URL, { // MongoDB connection URL
-    useNewUrlParser: true,  // Tool used to parse MongoDB connection strings
-    useUnifiedTopology: true // Use the new server discovery and monitoring engine
-    // Removed useCreateIndex and useFindAndModify options
-  })
-  .then(() => console.log("Connected to MongoDB")) // Log message on successful connection
-  .catch((err) => console.log(err)); // Log error if the connection fails
+// Database Connection
+connectDB();
 
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "images");
-  },
-  filename: (req, file, cb) => {
-    cb(null, req.body.name);
-  },
-});
-const upload = multer({ storage: storage });
-
-app.post("/api/upload", upload.single("file"), (req, res) => {
+// File Upload Route
+app.post("/api/upload", uploadMiddleware.single("file"), (req, res) => {
   res.status(200).json("File has been uploaded");
 });
 
-//middleware function added with use() for all routes and verbs
+
 app.use("/api/auth", authRoute);
 app.use("/api/users", userRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/categories", categoryRoute);
 
-app.listen("5001", () => {
+// Start server on port 5001
+app.listen(5001, () => {
   console.log("Backend is running on port 5001");
 });
